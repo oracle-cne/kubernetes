@@ -1,4 +1,3 @@
-
 %global debug_package   %{nil}
 %global _find_debuginfo_dwz_opts %{nil}
 %global _dwz_low_mem_die_limit 0
