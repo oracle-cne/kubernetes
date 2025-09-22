@@ -2,6 +2,7 @@
 @Library('olcne-pipeline') _
 import com.oracle.olcne.pipeline.BranchPattern
 
+String container_registry_namespace = "olcne";
 String kubernetes_version = "1.33.4";
 String kubernetes_image_tag = "v" + kubernetes_version;
 String registry = "container-registry.oracle.com/" + container_registry_namespace;
