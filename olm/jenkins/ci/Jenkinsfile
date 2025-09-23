@@ -1,5 +1,5 @@
 
-@Library('olcne-pipeline@k8sdebug') _
+@Library('olcne-pipeline@1-test-debug') _
 import com.oracle.olcne.pipeline.BranchPattern
 
 String container_registry_namespace = "olcne";
