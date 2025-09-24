@@ -38,7 +38,7 @@ ARCH=${5:-x86_64}
 echo ARCH=${ARCH}
 
 mkdir -p ${BINARY_LOCATION}/oracle_docker
-KUBE_BINARY="kube-apiserver kube-scheduler kube-controller-manager"
+KUBE_BINARY="kube-apiserver kube-scheduler kube-controller-manager kubectl"
 for BINARY in ${KUBE_BINARY}; do
         cp ${BINARY_LOCATION}/${BINARY} .
 
