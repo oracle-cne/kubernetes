@@ -60,7 +60,7 @@ Requires: iproute
 Requires: iproute-tc
 Requires: ebtables
 Requires: conntrack
-Requires: kubernetes-cni >= 1.1.2
+Requires: containernetworking-cni
 Requires: openssl
 Requires: kata-containers
 Requires: %{_sysconfdir}/crio/1.33
@@ -102,7 +102,7 @@ export KUBE_GIT_MINOR=%{minor}
 
 go version
 
-make WHAT='cmd/kubelet cmd/kubectl cmd/kubeadm'
+make WHAT='cmd/kubelet cmd/kubectl cmd/kubeadm' GOFLAGS="-trimpath=false" GOLDFLAGS="-X main.VERSION=v%{version}"
 
 bash hack/update-generated-docs.sh
 
