@@ -101,7 +101,7 @@ export KUBE_GIT_MINOR=%{minor}
 
 go version
 
-make WHAT='cmd/kubelet cmd/kubectl cmd/kubeadm'
+make WHAT='cmd/kubelet cmd/kubectl cmd/kubeadm' GOFLAGS="-trimpath=false" GOLDFLAGS="-X main.VERSION=v%{version}"
 
 bash hack/update-generated-docs.sh
 

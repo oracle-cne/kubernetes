@@ -49,7 +49,7 @@ export KUBE_GIT_MINOR=%{minor}
 export KUBE_EXTRA_GOPATH=$(pwd)/Godeps/_workspace
 export GOPATH=$(pwd)/Godeps/_workspace
 
-make WHAT='cmd/kube-proxy cmd/kube-apiserver cmd/kube-controller-manager cmd/kube-scheduler cmd/kubectl'
+make WHAT='cmd/kube-proxy cmd/kube-apiserver cmd/kube-controller-manager cmd/kube-scheduler cmd/kubectl' GOFLAGS="-trimpath=false" GOLDFLAGS="-X main.VERSION=v%{version}"
 
 %ifarch %{arm} arm64 aarch64
 arch=aarch64
