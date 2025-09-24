@@ -59,7 +59,7 @@ Requires: iproute
 Requires: iproute-tc
 Requires: ebtables
 Requires: conntrack
-Requires: kubernetes-cni >= 1.1.2
+Requires: containernetworking-cni
 Requires: openssl
 Requires: kata-containers
 Requires: %{_sysconfdir}/crio/1.33
