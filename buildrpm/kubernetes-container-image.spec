@@ -80,6 +80,7 @@ done
 /usr/local/share/olcne/kube-controller-manager.tar
 /usr/local/share/olcne/kube-scheduler.tar
 /usr/local/share/olcne/kube-proxy.tar
+/usr/local/share/olcne/kubectl.tar
 
 %changelog
 * Fri Sep 19 2025 Olcne-Builder Jenkins <olcne-builder_us@oracle.com> - 1.33.4-1
