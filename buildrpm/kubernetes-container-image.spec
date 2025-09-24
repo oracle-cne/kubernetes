@@ -49,7 +49,7 @@ export KUBE_GIT_MINOR=%{minor}
 export KUBE_EXTRA_GOPATH=$(pwd)/Godeps/_workspace
 export GOPATH=$(pwd)/Godeps/_workspace
 
-make WHAT='cmd/kube-proxy cmd/kube-apiserver cmd/kube-controller-manager cmd/kube-scheduler'
+make WHAT='cmd/kube-proxy cmd/kube-apiserver cmd/kube-controller-manager cmd/kube-scheduler cmd/kubectl'
 
 %ifarch %{arm} arm64 aarch64
 arch=aarch64
@@ -68,7 +68,7 @@ chmod +x build-k8s-docker.sh
 %install
 mkdir -p %{buildroot}/usr/local/share/olcne
 install -m 755 -d %{buildroot}/usr/local/share/olcne
-images=(kube-apiserver.tar kube-controller-manager.tar kube-scheduler.tar kube-proxy.tar)
+images=(kube-apiserver.tar kube-controller-manager.tar kube-scheduler.tar kube-proxy.tar kubectl.tar)
 for bin in "${images[@]}"; do
   echo "+++ INSTALLING DOCKER IMAGES ${bin}"
   install -p -m 755 -t %{buildroot}/usr/local/share/olcne _output/bin/oracle_docker/${bin}
