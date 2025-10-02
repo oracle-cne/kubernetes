@@ -29,8 +29,10 @@ BINARY_LOCATION=${2}
 REGISTRY=${3:-container-registry.oracle.com/olcne}
 if [[ ${4} == 9 ]] ; then
   DOCKER_FILE_PATH=./olm/builds/Dockerfile.oracle.ol9
+  KUBECTL_DOCKER=./olm/builds/Dockerfile.kubectl.ol9
 else
   DOCKER_FILE_PATH=./olm/builds/Dockerfile.oracle.ol8
+  KUBECTL_DOCKER=./olm/builds/Dockerfile.kubectl.ol8
 fi
 export REGISTRY
 export BASEIMAGE
@@ -38,7 +40,7 @@ ARCH=${5:-x86_64}
 echo ARCH=${ARCH}
 
 mkdir -p ${BINARY_LOCATION}/oracle_docker
-KUBE_BINARY="kube-apiserver kube-scheduler kube-controller-manager kubectl"
+KUBE_BINARY="kube-apiserver kube-scheduler kube-controller-manager"
 for BINARY in ${KUBE_BINARY}; do
         cp ${BINARY_LOCATION}/${BINARY} .
 
@@ -49,6 +51,9 @@ for BINARY in ${KUBE_BINARY}; do
         fi
         docker save -o ${BINARY_LOCATION}/oracle_docker/${BINARY}.tar ${REGISTRY}/${BINARY}:${VERSION}
 done
+
+# BUILD KUBECTL 
+docker build --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=${BINARY} -t ${REGISTRY}/${BINARY}:${VERSION} -f ${KUBECTL_DOCKER} .
 
 # TODO: remove this once OL7 is deprecated
 # kube-proxy iptables hack
