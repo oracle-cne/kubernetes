@@ -52,9 +52,11 @@ for BINARY in ${KUBE_BINARY}; do
         docker save -o ${BINARY_LOCATION}/oracle_docker/${BINARY}.tar ${REGISTRY}/${BINARY}:${VERSION}
 done
 
-# BUILD KUBECTL 
-cp ${BINARY_LOCATION}/kubectl .
-docker build --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=kubectl -t ${REGISTRY}/kubectl:${VERSION} -f ${KUBECTL_DOCKER} .
+# BUILD KUBECTL
+BINARY=kubectl
+cp ${BINARY_LOCATION}/${BINARY} .
+docker build --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=${BINARY} -t ${REGISTRY}/${BINARY}:${VERSION} -f ${KUBECTL_DOCKER} .
+docker save -o ${BINARY_LOCATION}/oracle_docker/${BINARY}.tar ${REGISTRY}/${BINARY}:${VERSION}
 
 # TODO: remove this once OL7 is deprecated
 # kube-proxy iptables hack
