@@ -2,6 +2,7 @@
 @Library('olcne-pipeline') _
 import com.oracle.olcne.pipeline.BranchPattern
 
+String container_registry_namespace = "olcne"
 String kubernetes_version = "1.32.9";
 String kubernetes_image_tag = "v" + kubernetes_version;
 String registry = "container-registry.oracle.com/" + container_registry_namespace;
@@ -24,8 +25,4 @@ olcnePipeline(
       ],
     ],
     architectures: ['x86_64', 'aarch64'],
-    preBuildCommands: [
-	'podman pull container-registry.oracle.com/olcne/base:latest',
-	'podman tag container-registry.oracle.com/olcne/base:latest container-registry.oracle.com/os/oraclelinux:8',
-    ],
 )
