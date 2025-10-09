@@ -43,9 +43,9 @@ for BINARY in ${KUBE_BINARY}; do
         cp ${BINARY_LOCATION}/${BINARY} .
 
         if [[ ${4} == 9 ]] ; then
-          docker build --pull=never --squash --network=host --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=${BINARY} -t ${REGISTRY}/${BINARY}:${VERSION} -f ${DOCKER_FILE_PATH} .
+          docker build --squash --network=host --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=${BINARY} -t ${REGISTRY}/${BINARY}:${VERSION} -f ${DOCKER_FILE_PATH} .
         else
-          docker build --pull=never --squash --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=${BINARY} -t ${REGISTRY}/${BINARY}:${VERSION} -f ${DOCKER_FILE_PATH} .
+          docker build --squash --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=${BINARY} -t ${REGISTRY}/${BINARY}:${VERSION} -f ${DOCKER_FILE_PATH} .
         fi
         docker save -o ${BINARY_LOCATION}/oracle_docker/${BINARY}.tar ${REGISTRY}/${BINARY}:${VERSION}
 done
@@ -60,9 +60,9 @@ cp LICENSE kube-proxy/.
 cp THIRD_PARTY_LICENSES.txt kube-proxy/.
 pushd kube-proxy/
 if [[ ${4} == 9 ]] ; then
-  docker build --pull=never --squash --network=host --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} -t ${REGISTRY}/${BINARY}:${VERSION} -f ./Dockerfile.kube-proxy .
+  docker build --squash --network=host --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} -t ${REGISTRY}/${BINARY}:${VERSION} -f ./Dockerfile.kube-proxy .
 else
-  docker build --pull=never --squash --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} -t ${REGISTRY}/${BINARY}:${VERSION} -f ./Dockerfile.kube-proxy .
+  docker build --squash --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} -t ${REGISTRY}/${BINARY}:${VERSION} -f ./Dockerfile.kube-proxy .
 fi
 popd
 docker save -o ${BINARY_LOCATION}/oracle_docker/${BINARY}.tar ${REGISTRY}/${BINARY}:${VERSION}
