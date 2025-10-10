@@ -1,6 +1,6 @@
 #!/bin/bash -x
 #
-# Copyright (c) 2019, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2019-2025, Oracle and/or its affiliates. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,8 +29,10 @@ BINARY_LOCATION=${2}
 REGISTRY=${3:-container-registry.oracle.com/olcne}
 if [[ ${4} == 9 ]] ; then
   DOCKER_FILE_PATH=./olm/builds/Dockerfile.oracle.ol9
+  KUBECTL_DOCKER=./olm/builds/Dockerfile.kubectl.ol9
 else
   DOCKER_FILE_PATH=./olm/builds/Dockerfile.oracle.ol8
+  KUBECTL_DOCKER=./olm/builds/Dockerfile.kubectl.ol8
 fi
 export REGISTRY
 export BASEIMAGE
@@ -43,12 +45,15 @@ for BINARY in ${KUBE_BINARY}; do
         cp ${BINARY_LOCATION}/${BINARY} .
 
         if [[ ${4} == 9 ]] ; then
-          docker build --pull=never --squash --network=host --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=${BINARY} -t ${REGISTRY}/${BINARY}:${VERSION} -f ${DOCKER_FILE_PATH} .
+          docker build --squash --network=host --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=${BINARY} -t ${REGISTRY}/${BINARY}:${VERSION} -f ${DOCKER_FILE_PATH} .
         else
-          docker build --pull=never --squash --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=${BINARY} -t ${REGISTRY}/${BINARY}:${VERSION} -f ${DOCKER_FILE_PATH} .
+          docker build --squash --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=${BINARY} -t ${REGISTRY}/${BINARY}:${VERSION} -f ${DOCKER_FILE_PATH} .
         fi
         docker save -o ${BINARY_LOCATION}/oracle_docker/${BINARY}.tar ${REGISTRY}/${BINARY}:${VERSION}
 done
+
+# BUILD KUBECTL
+docker build --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=kubectl -t ${REGISTRY}/${BINARY}:${VERSION} -f ${KUBECTL_DOCKER} .
 
 # TODO: remove this once OL7 is deprecated
 # kube-proxy iptables hack
@@ -60,9 +65,9 @@ cp LICENSE kube-proxy/.
 cp THIRD_PARTY_LICENSES.txt kube-proxy/.
 pushd kube-proxy/
 if [[ ${4} == 9 ]] ; then
-  docker build --pull=never --squash --network=host --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} -t ${REGISTRY}/${BINARY}:${VERSION} -f ./Dockerfile.kube-proxy .
+  docker build --squash --network=host --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} -t ${REGISTRY}/${BINARY}:${VERSION} -f ./Dockerfile.kube-proxy .
 else
-  docker build --pull=never --squash --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} -t ${REGISTRY}/${BINARY}:${VERSION} -f ./Dockerfile.kube-proxy .
+  docker build --squash --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} -t ${REGISTRY}/${BINARY}:${VERSION} -f ./Dockerfile.kube-proxy .
 fi
 popd
 docker save -o ${BINARY_LOCATION}/oracle_docker/${BINARY}.tar ${REGISTRY}/${BINARY}:${VERSION}

@@ -63,7 +63,7 @@ Requires: conntrack
 {{{- if semverCompare "<1.26.5" $version }}}
 Requires: kubernetes-cni >= 1.0.1
 {{{- else }}}
-Requires: kubernetes-cni >= 1.1.2
+Requires: containernetworking-cni
 {{{- end }}}
 Requires: openssl
 {{{- if semverCompare "<1.27.12" $version }}}
@@ -112,7 +112,7 @@ export KUBE_GIT_MINOR=%{minor}
 
 go version
 
-make WHAT='cmd/kubelet cmd/kubectl cmd/kubeadm'
+make WHAT='cmd/kubelet cmd/kubectl cmd/kubeadm' GOFLAGS="-trimpath=false" GOLDFLAGS="-X main.VERSION=v%{version}"
 
 bash hack/update-generated-docs.sh
 
