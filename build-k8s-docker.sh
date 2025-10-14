@@ -53,6 +53,7 @@ for BINARY in ${KUBE_BINARY}; do
 done
 
 # BUILD KUBECTL
+cp ${BINARY_LOCATION}/kubectl .
 docker build --build-arg https_proxy=${https_proxy} --build-arg VERSION=${VERSION} --build-arg BINARY=kubectl -t ${REGISTRY}/${BINARY}:${VERSION} -f ${KUBECTL_DOCKER} .
 
 # TODO: remove this once OL7 is deprecated
