@@ -17,7 +17,7 @@
 
 Name:          kubernetes
 Version:       1.30.14
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Container cluster management
 License:       ASL 2.0
 Group:         System/Management
@@ -234,5 +234,9 @@ fi
 %systemd_postun_with_restart kubelet
 
 %changelog
-* Tue Oct 14 2025 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.30.14-1
+* Tue Oct 14 2025 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.30.14-2
+- Rebuild with latest Oracle Linux base image
+
+* Thu Jun 19 2025 Olcne-Builder Jenkins <olcne-builder_us@oracle.com> - 1.30.14-1
 - Added Oracle specific build files for Kubernetes
+

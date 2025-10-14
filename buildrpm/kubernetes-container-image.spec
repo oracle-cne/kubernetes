@@ -15,11 +15,11 @@
 %global patch          14
 %global image_registry container-registry.oracle.com/olcne
 
-%global image_version %{version}
+%global image_version %{version}-1
 
 Name:          kubernetes-container-image
 Version:       1.30.14
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Container cluster management
 License:       ASL 2.0
 Group:         System/Management
@@ -83,5 +83,9 @@ done
 /usr/local/share/olcne/kubectl.tar
 
 %changelog
-* Tue Oct 14 2025 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.30.14-1
+* Tue Oct 14 2025 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.30.14-2
+- Rebuild with latest OCK base container image
+
+* Thu Jun 19 2025 Olcne-Builder Jenkins <olcne-builder_us@oracle.com> - 1.30.14-1
 - Added Oracle specific build files for Kubernetes
+
