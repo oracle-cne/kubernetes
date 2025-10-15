@@ -60,8 +60,8 @@ Requires: iproute
 Requires: iproute-tc
 Requires: ebtables
 Requires: conntrack
-{{{- if semverCompare "<1.26.5" $version }}}
-Requires: kubernetes-cni >= 1.0.1
+{{{- if semverCompare "<1.33" $version }}}
+Requires: kubernetes-cni
 {{{- else }}}
 Requires: containernetworking-cni
 {{{- end }}}
