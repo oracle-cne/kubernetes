@@ -234,7 +234,7 @@ fi
 %systemd_postun_with_restart kubelet
 
 %changelog
-* Mon Apr 27 2025 Daniel Krasinski <daniel.krasinski@oracle.com> - 1.30.14-3
+* Mon Apr 27 2026 Daniel Krasinski <daniel.krasinski@oracle.com> - 1.30.14-3
 - Rebuild with latest Oracle Linux base image
 
 * Tue Oct 14 2025 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.30.14-2
