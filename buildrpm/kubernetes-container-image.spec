@@ -15,11 +15,11 @@
 %global patch          14
 %global image_registry container-registry.oracle.com/olcne
 
-%global image_version %{version}
+%global image_version %{version}-1
 
 Name:          kubernetes-container-image
 Version:       1.31.14
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Container cluster management
 License:       ASL 2.0
 Group:         System/Management
@@ -83,5 +83,8 @@ done
 /usr/local/share/olcne/kubectl.tar
 
 %changelog
+* Thu Apr 23 2026 Daniel Krasinski <daniel.krasinski@oracle.com> - 1.31.14-2
+- Address CVE-2025-61726, CVE-2026-25679, CVE-2025-61728, CVE-2025-61729, CVE-2025-61730, CVE-2026-32280, CVE-2026-32281, CVE-2026-32283
+
 * Thu Dec 11 2025 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.31.14-1
 - Added Oracle specific build files for Kubernetes
