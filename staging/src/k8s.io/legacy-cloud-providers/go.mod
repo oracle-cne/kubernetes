@@ -2,14 +2,14 @@
 
 module k8s.io/legacy-cloud-providers
 
-go 1.22.0
+go 1.25.0
 
 require (
-	cloud.google.com/go/compute/metadata v0.2.3
+	cloud.google.com/go/compute/metadata v0.3.0
 	github.com/GoogleCloudPlatform/k8s-cloud-provider v1.18.1-0.20220218231025-f11817397a1b
 	github.com/google/go-cmp v0.6.0
-	github.com/stretchr/testify v1.8.4
-	golang.org/x/oauth2 v0.10.0
+	github.com/stretchr/testify v1.11.1
+	golang.org/x/oauth2 v0.27.0
 	google.golang.org/api v0.126.0
 	gopkg.in/gcfg.v1 v1.2.3
 	k8s.io/api v0.0.0
@@ -22,7 +22,6 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.23.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -57,11 +56,11 @@ require (
 	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.21.0 // indirect
-	golang.org/x/net v0.23.0 // indirect
-	golang.org/x/sys v0.18.0 // indirect
-	golang.org/x/term v0.18.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/term v0.29.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
