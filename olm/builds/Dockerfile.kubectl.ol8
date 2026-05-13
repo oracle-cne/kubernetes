@@ -2,7 +2,7 @@ FROM container-registry.oracle.com/os/oraclelinux:8-slim
 ARG BINARY
 ARG VERSION
 
-RUN microdnf install -y tar which bzip2 &&\
+RUN microdnf install -y tar bzip2 &&\
     microdnf clean all &&\
     rm -rf /var/cache/yum/*
 
