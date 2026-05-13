@@ -1,0 +1,29 @@
+
+@Library('olcne-pipeline') _
+import com.oracle.olcne.pipeline.BranchPattern
+
+String container_registry_namespace = "olcne";
+String kubernetes_version = "1.35.5";
+String kubernetes_image_tag = "v" + kubernetes_version;
+String registry = "container-registry.oracle.com/" + container_registry_namespace;
+
+olcnePipeline(
+    branchPattern: new BranchPattern(master: "oracle/release/" + kubernetes_version, feature: '(?!^release/.*$)(^.*$)'),
+    containers: [
+        (registry + '/kube-proxy:' + kubernetes_image_tag)              : container_registry_namespace + '/kube-proxy:' + kubernetes_image_tag,
+        (registry + '/kube-apiserver:' + kubernetes_image_tag)          : container_registry_namespace + '/kube-apiserver:' + kubernetes_image_tag,
+        (registry + '/kube-scheduler:' + kubernetes_image_tag)          : container_registry_namespace + '/kube-scheduler:' + kubernetes_image_tag,
+        (registry + '/kube-controller-manager:' + kubernetes_image_tag) : container_registry_namespace + '/kube-controller-manager:' + kubernetes_image_tag,
+        (registry + '/kubectl:' + kubernetes_image_tag)              : container_registry_namespace + '/kubectl:' + kubernetes_image_tag,
+    ],
+    platforms: ['ol8', 'ol9'],
+    yumOL9Repos: ['ol9_appstream', 'ol9_codeready_builder', 'ol9_developer_EPEL'],
+    yumOL8Repos: ['ol8_appstream', 'ol8_codeready_builder'],
+    customPlatformStages: [
+      customPlatformSteps: [
+        ol8: [container: [enabled: true ], buildContainerRpms: [enabled: true ]],
+        ol9: [container: [enabled: false ], buildContainerRpms: [enabled: false ]],
+      ],
+    ],
+    architectures: ['x86_64', 'aarch64'],
+)
