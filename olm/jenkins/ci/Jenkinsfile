@@ -16,6 +16,7 @@ olcnePipeline(
         (registry + '/kube-controller-manager:' + kubernetes_image_tag) : container_registry_namespace + '/kube-controller-manager:' + kubernetes_image_tag,
         (registry + '/kubectl:' + kubernetes_image_tag)              : container_registry_namespace + '/kubectl:' + kubernetes_image_tag,
     ],
+    noslim: true,
     platforms: ['ol8', 'ol9'],
     yumOL9Repos: ['ol9_appstream', 'ol9_codeready_builder', 'ol9_developer_EPEL'],
     yumOL8Repos: ['ol8_appstream', 'ol8_codeready_builder'],
