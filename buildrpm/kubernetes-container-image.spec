@@ -15,7 +15,7 @@
 %global patch          14
 %global image_registry container-registry.oracle.com/olcne
 
-%global image_version %{version}-1
+%global image_version %{version}-2
 
 Name:          kubernetes-container-image
 Version:       1.31.14
