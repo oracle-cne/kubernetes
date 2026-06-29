@@ -17,7 +17,7 @@
 
 Name:          kubernetes
 Version:       1.31.14
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       Container cluster management
 License:       ASL 2.0
 Group:         System/Management
@@ -234,6 +234,9 @@ fi
 %systemd_postun_with_restart kubelet
 
 %changelog
+* Mon Jun 29 2026 Daniel Krasinski <daniel.krasinski@oracle.com> - 1.31.14-3
+- Update latest OL8 base image
+
 * Thu Apr 23 2026 Daniel Krasinski <daniel.krasinski@oracle.com> - 1.31.14-2
 - Address CVE-2025-61726, CVE-2026-25679, CVE-2025-61728, CVE-2025-61729, CVE-2025-61730, CVE-2026-32280, CVE-2026-32281, CVE-2026-32283
 
