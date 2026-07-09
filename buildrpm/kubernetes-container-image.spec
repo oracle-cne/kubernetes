@@ -15,11 +15,11 @@
 %global patch          13
 %global image_registry container-registry.oracle.com/olcne
 
-%global image_version %{version}
+%global image_version %{version}-1
 
 Name:          kubernetes-container-image
 Version:       1.32.13
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Container cluster management
 License:       ASL 2.0
 Group:         System/Management
@@ -83,5 +83,8 @@ done
 /usr/local/share/olcne/kubectl.tar
 
 %changelog
+* Mon Jun 29 2026 Daniel Krasinski <daniel.krasinski@oracle.com> - 1.32.13-2
+- Rebuild with latest OL8 base image
+
 * Sat Feb 28 2026 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.32.13-1
 - Added Oracle specific build files for Kubernetes
