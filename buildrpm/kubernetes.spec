@@ -17,7 +17,7 @@
 
 Name:          kubernetes
 Version:       1.33.13
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Container cluster management
 License:       ASL 2.0
 Group:         System/Management
@@ -234,5 +234,8 @@ fi
 %systemd_postun_with_restart kubelet
 
 %changelog
+* Mon Oct 05 2026 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.33.13-2
+- Refresh dependencies to address security vulnerabilities
+
 * Sat Jun 13 2026 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.33.13-1
 - Added Oracle specific build files for Kubernetes
