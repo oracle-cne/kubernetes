@@ -1,4 +1,5 @@
 bazil.org/fuse v0.0.0-20160811212531-371fbbdaa898 h1:SC+c6A1qTFstO9qmB86mPV2IpYme/2ZoEQ0hrP+wo+Q=
+cloud.google.com/go v0.112.2 h1:ZaGT6LiG7dBzi6zNOvVZwacaXlmf3lRqnC4DQzqyRQw=
 cloud.google.com/go/accessapproval v1.7.1 h1:/5YjNhR6lzCvmJZAnByYkfEgWjfAKwYP6nkuTk6nKFE=
 cloud.google.com/go/accesscontextmanager v1.8.1 h1:WIAt9lW9AXtqw/bnvrEUaE8VG/7bAAeMzRCBGMkc4+w=
 cloud.google.com/go/aiplatform v1.48.0 h1:M5davZWCTzE043rJCn+ZLW6hSxfG1KAx4vJTtas2/ec=
@@ -23,6 +24,7 @@ cloud.google.com/go/channel v1.16.0 h1:dqRkK2k7Ll/HHeYGxv18RrfhozNxuTJRkspW0iaFZ
 cloud.google.com/go/cloudbuild v1.13.0 h1:YBbAWcvE4x6xPWTyS+OU4eiUpz5rCS3VCM/aqmfddPA=
 cloud.google.com/go/clouddms v1.6.1 h1:rjR1nV6oVf2aNNB7B5uz1PDIlBjlOiBgR+q5n7bbB7M=
 cloud.google.com/go/cloudtasks v1.12.1 h1:cMh9Q6dkvh+Ry5LAPbD/U2aw6KAqdiU6FttwhbTo69w=
+cloud.google.com/go/compute v1.54.0 h1:4CKmnpO+40z44bKG5bdcKxQ7ocNpRtOc9SCLLUzze1w=
 cloud.google.com/go/contactcenterinsights v1.10.0 h1:YR2aPedGVQPpFBZXJnPkqRj8M//8veIZZH5ZvICoXnI=
 cloud.google.com/go/container v1.24.0 h1:N51t/cgQJFqDD/W7Mb+IvmAPHrf8AbPx7Bb7aF4lROE=
 cloud.google.com/go/containeranalysis v0.10.1 h1:SM/ibWHWp4TYyJMwrILtcBtYKObyupwOVeceI9pNblw=

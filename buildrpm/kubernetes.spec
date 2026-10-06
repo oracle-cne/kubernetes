@@ -17,7 +17,7 @@
 
 Name:          kubernetes
 Version:       1.30.14
-Release:       3%{?dist}
+Release:       4%{?dist}
 Summary:       Container cluster management
 License:       ASL 2.0
 Group:         System/Management
@@ -234,6 +234,9 @@ fi
 %systemd_postun_with_restart kubelet
 
 %changelog
+* Tue Oct 06 2026 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.30.14-4
+- Rebuild Kubernetes 1.30.14 images as v1.30.14-3 for OCK 1.30
+
 * Mon Apr 27 2026 Daniel Krasinski <daniel.krasinski@oracle.com> - 1.30.14-3
 - Rebuild with latest Oracle Linux base image
 
