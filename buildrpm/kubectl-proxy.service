@@ -1,0 +1,13 @@
+[Unit]
+ConditionPathExists=/etc/kubernetes/admin.conf
+Description=kubectl proxy Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kubectl --kubeconfig=/etc/kubernetes/admin.conf proxy $KUBECTL_PROXY_ARGS
+Restart=always
+StartLimitInterval=0
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
