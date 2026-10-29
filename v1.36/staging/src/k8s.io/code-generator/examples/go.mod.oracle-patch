@@ -1,0 +1,6 @@
+diff --git a/staging/src/k8s.io/code-generator/examples/go.mod b/staging/src/k8s.io/code-generator/examples/go.mod
+--- a/staging/src/k8s.io/code-generator/examples/go.mod
++++ b/staging/src/k8s.io/code-generator/examples/go.mod
+@@ -58 +58,2 @@
++	k8s.io/streaming => ../../streaming
+ )
