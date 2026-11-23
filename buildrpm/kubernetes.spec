@@ -17,7 +17,7 @@
 
 Name:          kubernetes
 Version:       1.32.13
-Release:       3%{?dist}
+Release:       4%{?dist}
 Summary:       Container cluster management
 License:       ASL 2.0
 Group:         System/Management
@@ -33,7 +33,7 @@ Source44:      br_netfilter.conf
 Source46:      kubectl-proxy.service
 Source47:      10-kubectl-proxy.conf
 Source51:      kubelet
-BuildRequires: golang
+BuildRequires: golang >= 1.26.11
 BuildRequires: systemd
 BuildRequires: rsync
 BuildRequires: pandoc
@@ -44,7 +44,7 @@ Kubernetes (K8s) is an open-source system for automating deployment, scaling, an
 
 %package -n kubelet
 Summary: Container cluster management
-BuildRequires: golang
+BuildRequires: golang >= 1.26.11
 BuildRequires: systemd
 BuildRequires: curl
 BuildRequires: gcc
@@ -234,6 +234,9 @@ fi
 %systemd_postun_with_restart kubelet
 
 %changelog
+* Mon Nov 23 2026 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.32.13-4
+- Update Go and dependencies for security fixes
+
 * Tue Oct 06 2026 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.32.13-3
 - Update dependencies to address security vulnerabilities
 

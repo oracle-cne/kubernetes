@@ -1,0 +1,137 @@
+Security dependency review: Kubernetes 1.32.13
+Review date: 2026-11-23
+
+Evidence and scope
+
+Database: https://linux-git.oraclecorp.com/OLCNE/vulnerability_database
+Snapshot: 89580d099038c958216365dca01bb6385515c284
+Inputs: vulnerability_database.yaml, components.yaml, exception-list.yaml,
+the database README and schema, both buildrpm specifications,
+build-k8s-docker.sh, all three shipped Dockerfiles, and the Go import graph.
+The snapshot was downloaded as an archive without writing to Git.
+
+The RPMs ship kubelet, kubeadm, and kubectl. Container archives ship
+kube-apiserver, kube-controller-manager, kube-scheduler, kube-proxy, and
+kubectl. All seven distinct binaries were included in dependency analysis.
+Both x86_64 and aarch64 are configured in olm/jenkins/ci/Jenkinsfile.
+Container builds are enabled for OL8; OL9 container stages are disabled.
+
+Database records describe several historical artifact versions. Findings
+were compared to the current source dependency versions rather than treating
+every historical installedVersion as the current version. Database entries
+marked falsePositive were excluded from required security upgrades. The
+exception patterns do not exclude Kubernetes 1.32.13 artifacts. Per the
+task's scope, managed base images must remain unchanged and vulnerabilities
+in those base images are excluded from remediation.
+
+Selected changes and reasons
+
+1. Go 1.25.9 -> 1.26.11 in .go-version, with the same minimum enforced in
+   root/staging module metadata and both RPM build requirements.
+   The database lists Go 1.26.11 and 1.27.4 as fixes for CVE-2026-97054.
+   Other late findings include CVE-2026-78667, CVE-2026-97031,
+   CVE-2026-111943, CVE-2026-56866, CVE-2026-78660,
+   CVE-2026-94439, and CVE-2026-94440. Go 1.26.11 is above the listed
+   1.26 fixes. The existing godebug settings are preserved.
+   build/dependencies.yaml records the Oracle security toolchain separately
+   from the existing upstream cross-build image version; no unverified
+   kube-cross image tag is introduced.
+
+2. golang.org/x/net v0.58.0 -> v0.62.0.
+   CVE-2026-78659, CVE-2026-78663, CVE-2026-78669, and
+   CVE-2026-97032 list v0.60.0 as fixed. CVE-2026-78661 requires
+   v0.62.0, so v0.60.0 alone would leave a listed vulnerability unresolved.
+   v0.62.0 requires Go 1.26 and newer crypto, sys, term, and text modules.
+   Module resolution also updates mod, sync, and tools. These are generated
+   transitive requirements, not independently selected feature upgrades.
+
+3. go.opentelemetry.io/contrib/instrumentation/github.com/emicklei/go-restful/
+   otelrestful v0.42.0 -> v0.44.0 for GHSA-rcjv-mgp8-qvmr.
+   This module is present in the shipped binaries' import graph even though
+   it is absent from the newest RPM finding lists. The update uses the
+   database-listed fixed release. Vendoring removes obsolete, unreferenced
+   OpenTelemetry semantic-convention helpers as a consequence.
+
+4. Both RPM releases advance from 3 to 4 to distinguish rebuilt packages.
+   Container base references, Dockerfiles, package installation commands,
+   and base-image pull behavior remain unchanged. Base-image findings are
+   excluded as requested. This includes the base OS packages identified in
+   the database, such as openssl-libs, glibc, libxml2, expat, curl/libcurl,
+   and Python. No remediation claim is made for those managed packages.
+
+All dependency changes use hack/pin-dependency.sh and hack/update-vendor.sh,
+as required by go.mod and the upstream Kubernetes vendor procedure:
+https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/vendor.md
+Generated staging manifests, checksums, vendor sources, and license records
+are included. No hand-written replacement implementations are introduced.
+
+Existing fixes and findings outside the shipped import graph
+
+The current gRPC v1.83.2, OpenTelemetry SDK v1.44.0, otelgrpc v0.53.0,
+otelhttp v0.61.0, runc v1.2.9, spdystream v0.5.1, and x/text v0.41.0
+already meet their database-listed fixes. In particular, the historical
+CVE-2023-45142 entry names otelhttp v0.35.1; this checkout uses v0.61.0.
+The older golang-jwt/jwt/v4 v4.5.0 remains in the module/vendor tree but is
+absent from the seven production binaries' import graph. Its historical
+CVE-2025-30204 finding is therefore not treated as a shipped binary update.
+This review does not assert that every test-only or unused vendored module
+has no known vulnerabilities.
+
+Compliant alternatives considered
+
+Candidates were screened against the supplied AGENTS.md instructions,
+the vendored OpenTelemetry AGENTS.md where relevant, the Kubernetes vendor
+procedure, dependency Go requirements, and the database's fixed versions.
+No Git write operations, commits, merges, rebases, or pushes are used.
+
+Only two concrete combinations are supported by the supplied fixed-version
+evidence; fewer than four compliant, evidence-supported alternatives were
+established. Both require the same module updates and preserve managed bases.
+
+A. Go 1.26.11 plus the dependency fixes above: selected because it meets all
+   listed Go 1.26 security thresholds and the x/net Go requirement while
+   avoiding an additional Go minor-version upgrade.
+B. Go 1.27.4 plus the same dependency fixes: the database also lists this
+   version as fixed for CVE-2026-97054. It requires a broader toolchain
+   compatibility assessment and is unnecessary for the listed fixes.
+
+Validation results and limitations
+
+Detailed command output is retained in /tmp/kube132-vulnerability-review/.
+All seven linux/amd64 binaries compile with Go 1.26.11, including a second
+build with CGO_ENABLED=0 matching Kubernetes' static binary build mode.
+Embedded binary metadata confirms Go 1.26.11 and x/net v0.62.0 in all seven
+binaries, and otelrestful v0.44.0 in kubelet, which imports that module.
+Both RPM specifications parse for Oracle Linux 8 and 9 as release 4.
+hack/verify-external-dependencies-version.sh passes. Shell syntax and
+git diff --check pass. Git diff confirms no remaining changes to any
+Dockerfile or build-k8s-docker.sh.
+The statically built kubectl also starts successfully in the existing local
+Oracle Linux 8 slim image, using --pull=never and --network=none with the
+binary mounted read-only. That check performs no base-image package updates.
+
+Consumer tests pass for component-base/tracing, both API-server filter
+packages, pkg/proxy/util, and kubeadm/app/util. The client-go/transport
+suite encounters a nil-header panic in TestTokenSourceTransportRoundTrip.
+The identical panic was reproduced on an archive of the original HEAD
+with the original Go 1.25.9 toolchain. The remaining transport tests pass
+when that pre-existing failing test is excluded; the full suite is not
+reported as passing.
+
+hack/verify-vendor.sh regenerated matching manifests, checksums, and vendor
+files in a temporary directory, then failed at the dependency lint step.
+The expected/actual unwanted-reference data before and after the changes
+matches after removing log timestamps and download notices.
+The baseline hack/lint-dependencies.sh already fails on unwanted-reference
+metadata involving auto/sdk and existing gRPC dependencies, including
+github.com/google/s2a-go, github.com/googleapis/enterprise-certificate-proxy,
+and github.com/googleapis/gax-go/v2. These predate this update.
+
+The vendored OpenTelemetry make precommit target cannot run: its upstream
+internal/tools modules are not shipped in vendor, leaving the porto tool
+target unavailable. Kubernetes consumer tests and vendor reproducibility
+checks provide the applicable integration validation.
+
+Full RPM production builds, aarch64 execution, and post-build container
+vulnerability scans are separate release validation steps. Source changes
+alone do not establish that already published artifacts have been repaired.

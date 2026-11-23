@@ -110,11 +110,20 @@ dependencies:
     - path: cluster/images/etcd/Makefile
       match: 'GOLANG_VERSION := \d+.\d+(alpha|beta|rc)?\.?(\d+)?'
 
+  # Oracle RPM builds use the security toolchain pinned in .go-version.
+  - name: "golang: Oracle security build"
+    version: 1.26.11
+    refPaths:
+    - path: .go-version
+    - path: buildrpm/kubernetes.spec
+      match: 'BuildRequires: golang >= '
+    - path: buildrpm/kubernetes-container-image.spec
+      match: 'BuildRequires: golang >= '
+
   # Golang
   - name: "golang: upstream version"
     version: 1.24.13
     refPaths:
-    - path: .go-version
     - path: build/build-image/cross/VERSION
     - path: staging/publishing/rules.yaml
       match: 'default-go-version\: \d+.\d+(alpha|beta|rc)?\.?(\d+)?'

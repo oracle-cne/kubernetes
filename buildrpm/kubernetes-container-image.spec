@@ -15,11 +15,11 @@
 %global patch          13
 %global image_registry container-registry.oracle.com/olcne
 
-%global image_version %{version}-1
+%global image_version %{version}-2
 
 Name:          kubernetes-container-image
 Version:       1.32.13
-Release:       3%{?dist}
+Release:       4%{?dist}
 Summary:       Container cluster management
 License:       ASL 2.0
 Group:         System/Management
@@ -27,6 +27,7 @@ URL:           https://kubernetes.io
 Vendor:        Oracle America
 ExclusiveArch: x86_64 ppc64le %{arm} aarch64
 Source:        %{name}-%{version}.tar.bz2
+BuildRequires: golang >= 1.26.11
 
 %description
 Kubernetes (K8s) is an open-source system for automating deployment, scaling, and management of containerized applications.
@@ -83,6 +84,9 @@ done
 /usr/local/share/olcne/kubectl.tar
 
 %changelog
+* Mon Nov 23 2026 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.32.13-4
+- Update Go and dependencies for security fixes; bump image suffix to -2
+
 * Tue Oct 06 2026 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.32.13-3
 - Update dependencies to address security vulnerabilities
 
