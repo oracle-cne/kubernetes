@@ -499,6 +499,15 @@ func (c *RaftCluster) UpdateAttributes(id types.ID, attr Attributes, shouldApply
 		}
 		if c.be != nil && shouldApplyV3 {
 			unsafeSaveMemberToBackend(c.lg, c.be, m)
+
+			// Ideally, each member only updates its own attributes
+			// once before serving requests. Since this happens only
+			// on startup and at a low frequency, it should be safe
+			// to clean up zombie members in this request.
+			if id == c.localID && c.v2store != nil {
+				c.lg.Info("checking and cleaning up zombie members after attribute update")
+				CleanupZombieMembersIfNeeded(c.lg, c.be, c.v2store)
+			}
 		}
 		return
 	}
@@ -546,12 +555,29 @@ func (c *RaftCluster) UpdateRaftAttributes(id types.ID, raftAttr RaftAttributes,
 	c.Lock()
 	defer c.Unlock()
 
-	c.members[id].RaftAttributes = raftAttr
+	var (
+		m  *Member
+		ok bool
+	)
+	if m, ok = c.members[id]; !ok {
+		c.lg.Info("Skipped updating non-existent member in v2store",
+			zap.String("cluster-id", c.cid.String()),
+			zap.String("local-member-id", c.localID.String()),
+			zap.String("updated-remote-peer-id", id.String()),
+			zap.Strings("updated-remote-peer-urls", raftAttr.PeerURLs),
+			zap.Bool("updated-remote-peer-is-learner", raftAttr.IsLearner),
+			zap.Bool("should-apply-v3", bool(shouldApplyV3)),
+		)
+		return
+	}
+	// `MemberUpdateRequest` only supports updating PeerURLs.
+	m.RaftAttributes.PeerURLs = raftAttr.PeerURLs
+
 	if c.v2store != nil {
-		mustUpdateMemberInStore(c.lg, c.v2store, c.members[id])
+		mustUpdateMemberInStore(c.lg, c.v2store, m)
 	}
 	if c.be != nil && shouldApplyV3 {
-		unsafeSaveMemberToBackend(c.lg, c.be, c.members[id])
+		unsafeSaveMemberToBackend(c.lg, c.be, m)
 	}
 
 	c.lg.Info(
@@ -561,6 +587,15 @@ func (c *RaftCluster) UpdateRaftAttributes(id types.ID, raftAttr RaftAttributes,
 		zap.String("updated-remote-peer-id", id.String()),
 		zap.Strings("updated-remote-peer-urls", raftAttr.PeerURLs),
 	)
+}
+
+func (c *RaftCluster) CleanupZombieMembersIfNeeded(shouldApplyV3 ShouldApplyV3) {
+	c.Lock()
+	defer c.Unlock()
+
+	if c.v2store != nil && c.be != nil && shouldApplyV3 {
+		CleanupZombieMembersIfNeeded(c.lg, c.be, c.v2store)
+	}
 }
 
 func (c *RaftCluster) Version() *semver.Version {
@@ -742,6 +777,43 @@ func (c *RaftCluster) MembersFromBackend() (map[types.ID]*Member, map[types.ID]b
 
 func membersFromBackend(lg *zap.Logger, be backend.Backend) (map[types.ID]*Member, map[types.ID]bool) {
 	return mustReadMembersFromBackend(lg, be)
+}
+
+func SyncLearnerPromotionIfNeeded(lg *zap.Logger, be backend.Backend, st v2store.Store) error {
+	v2Members, _ := membersFromStore(lg, st)
+	v3Members, _ := membersFromBackend(lg, be)
+
+	for id, v3Member := range v3Members {
+		v2Member, ok := v2Members[id]
+		if !ok {
+			return fmt.Errorf("detected member only in v3store but missing in v2store, member: %+v", *v3Member)
+		}
+
+		if !v2Member.IsLearner && v3Member.IsLearner {
+			syncedV3Member := v3Member.Clone()
+			syncedV3Member.IsLearner = false
+			lg.Warn("Syncing member in v3store", zap.String("member", fmt.Sprintf("%+v", *syncedV3Member)))
+			if err := unsafeSaveMemberToBackend(lg, be, syncedV3Member); err != nil {
+				return fmt.Errorf("failed to save synced member to backend, member: %+v, error:%w", *syncedV3Member, err)
+			}
+		}
+	}
+	return nil
+}
+
+func CleanupZombieMembersIfNeeded(lg *zap.Logger, be backend.Backend, st v2store.Store) {
+	v2Members, _ := membersFromStore(lg, st)
+	v3Members, _ := membersFromBackend(lg, be)
+
+	for id, v3Member := range v3Members {
+		_, ok := v2Members[id]
+		if !ok {
+			lg.Warn("Removing zombie member from v3store", zap.String("member", fmt.Sprintf("%+v", *v3Member)))
+			if err := unsafeDeleteMemberFromBackend(be, id); err != nil {
+				lg.Warn("failed to delete zombie member from backend", zap.String("member-id", id.String()), zap.Error(err))
+			}
+		}
+	}
 }
 
 func clusterVersionFromStore(lg *zap.Logger, st v2store.Store) *semver.Version {

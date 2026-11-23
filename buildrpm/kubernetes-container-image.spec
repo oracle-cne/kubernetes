@@ -15,11 +15,11 @@
 %global patch          13
 %global image_registry container-registry.oracle.com/olcne
 
-%global image_version %{version}
+%global image_version %{version}-1
 
 Name:          kubernetes-container-image
 Version:       1.33.13
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       Container cluster management
 License:       ASL 2.0
 Group:         System/Management
@@ -83,6 +83,9 @@ done
 /usr/local/share/olcne/kubectl.tar
 
 %changelog
+* Mon Nov 23 2026 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.33.13-3
+- Update Go and dependencies to fix security vulnerabilities
+
 * Mon Oct 05 2026 Oracle Cloud Native Environment Authors <noreply@oracle.com> - 1.33.13-2
 - Refresh dependencies to address security vulnerabilities
 

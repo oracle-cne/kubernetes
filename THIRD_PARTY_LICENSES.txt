@@ -34,6 +34,7 @@ Copyright 2025 The Kubernetes Authors.
 -  BSD-3-Clause--modified-by-Google
 -  ISC
 -  MIT
+-  MPL-2.0
 
 --------------------------------- (separator) ----------------------------------
 
@@ -59,6 +60,18 @@ Copyright 2022 Google LLC
 Copyright 2023 Google LLC
 Copyright 2024 Google LLC
 Copyright 2025 Google LLC
+
+--------------------------------- (separator) ----------------------------------
+
+== Dependency
+cyphar.com/go-pathrs
+
+== License Type
+SPDX:MPL-2.0
+
+== Copyright
+Copyright (C) 2019-2025 Aleksa Sarai <cyphar@cyphar.com>
+Copyright (C) 2019-2025 SUSE LLC
 
 --------------------------------- (separator) ----------------------------------
 
@@ -440,7 +453,7 @@ Copyright (c) 2014 Brian Goff
 github.com/cyphar/filepath-securejoin
 
 == License Type
-SPDX:BSD-3-Clause--modified-by-Google
+SPDX:BSD-3-Clause--modified-by-Google AND MPL-2.0
 
 == Copyright
 Copyright (C) 2014-2015 Docker Inc & Go Authors. All rights reserved.

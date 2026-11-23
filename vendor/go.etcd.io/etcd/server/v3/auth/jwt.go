@@ -62,7 +62,6 @@ func (t *tokenJWT) info(ctx context.Context, token string, rev uint64) (*AuthInf
 	if err != nil {
 		t.lg.Warn(
 			"failed to parse a JWT token",
-			zap.String("token", token),
 			zap.Error(err),
 		)
 		return nil, false
@@ -70,7 +69,7 @@ func (t *tokenJWT) info(ctx context.Context, token string, rev uint64) (*AuthInf
 
 	claims, ok := parsed.Claims.(jwt.MapClaims)
 	if !parsed.Valid || !ok {
-		t.lg.Warn("invalid JWT token", zap.String("token", token))
+		t.lg.Warn("failed to obtain claims from a JWT token")
 		return nil, false
 	}
 
@@ -114,12 +113,12 @@ func (t *tokenJWT) assign(ctx context.Context, username string, revision uint64)
 		return "", err
 	}
 
-	t.lg.Debug(
-		"created/assigned a new JWT token",
-		zap.String("user-name", username),
-		zap.Uint64("revision", revision),
-		zap.String("token", token),
-	)
+	if ce := t.lg.Check(zap.DebugLevel, "created/assigned a new JWT token"); ce != nil {
+		tokenFingerprint := redactToken(token)
+		ce.Write(zap.String("user-name", username),
+			zap.Uint64("revision", revision),
+			zap.String("token-fingerprint", tokenFingerprint))
+	}
 	return token, err
 }
 

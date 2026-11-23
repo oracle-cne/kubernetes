@@ -26,7 +26,7 @@ import (
 	"os/exec"
 	"strings"
 
-	securejoin "github.com/cyphar/filepath-securejoin"
+	securejoin "github.com/cyphar/filepath-securejoin/pathrs-lite"
 	unix "golang.org/x/sys/unix"
 )
 
