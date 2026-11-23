@@ -33,7 +33,7 @@ Source44:      br_netfilter.conf
 Source46:      kubectl-proxy.service
 Source47:      10-kubectl-proxy.conf
 Source51:      kubelet
-BuildRequires: golang >= 1.26.11
+BuildRequires: golang
 BuildRequires: systemd
 BuildRequires: rsync
 BuildRequires: pandoc
@@ -44,7 +44,7 @@ Kubernetes (K8s) is an open-source system for automating deployment, scaling, an
 
 %package -n kubelet
 Summary: Container cluster management
-BuildRequires: golang >= 1.26.11
+BuildRequires: golang
 BuildRequires: systemd
 BuildRequires: curl
 BuildRequires: gcc

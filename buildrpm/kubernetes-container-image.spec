@@ -27,7 +27,7 @@ URL:           https://kubernetes.io
 Vendor:        Oracle America
 ExclusiveArch: x86_64 ppc64le %{arm} aarch64
 Source:        %{name}-%{version}.tar.bz2
-BuildRequires: golang >= 1.26.11
+BuildRequires: golang
 
 %description
 Kubernetes (K8s) is an open-source system for automating deployment, scaling, and management of containerized applications.
