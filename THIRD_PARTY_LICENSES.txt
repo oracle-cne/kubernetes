@@ -2696,6 +2696,7 @@ SPDX:Apache-2.0
 Copyright (c) 2016-2017 Uber Technologies, Inc.
 Copyright (c) 2017 Uber Technologies, Inc.
 Copyright (c) 2021 The Jaeger Authors.
+Copyright 2009 The Go Authors.
 Copyright 2014 gRPC authors.
 Copyright 2017, OpenCensus Authors
 Copyright 2023 The Go Authors. All rights reserved.
@@ -4522,6 +4523,7 @@ Copyright 2022 The Go Authors. All rights reserved.
 Copyright 2023 The Go Authors. All rights reserved.
 Copyright 2024 The Go Authors. All rights reserved.
 Copyright 2025 The Go Authors. All rights reserved.
+Copyright 2026 The Go Authors. All rights reserved.
 
 == Patents
 Additional IP Rights Grant (Patents)
