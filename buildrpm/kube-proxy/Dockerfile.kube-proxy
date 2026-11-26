@@ -1,0 +1,7 @@
+FROM container-registry.oracle.com/olcne/ock:base-image
+RUN dnf install yum iptables ebtables conntrack kmod ipset tar which && dnf clean all
+ADD kube-proxy /usr/local/bin/kube-proxy
+
+RUN test -d /LICENSES || ln -s /usr/share/licenses /LICENSES
+ADD LICENSE /LICENSES/kubernetes-${VERSION}/LICENSE
+ADD THIRD_PARTY_LICENSES.txt /LICENSES/kubernetes-${VERSION}/THIRD_PARTY_LICENSES.txt
