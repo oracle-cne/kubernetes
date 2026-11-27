@@ -41,6 +41,10 @@ type BackendGetter interface {
 	Backend() backend.Backend
 }
 
+type Defrager interface {
+	Defragment() error
+}
+
 type Alarmer interface {
 	// Alarms is implemented in Server interface located in etcdserver/server.go
 	// It returns a list of alarms present in the AlarmStore
@@ -71,6 +75,7 @@ type maintenanceServer struct {
 	hasher mvcc.HashStorage
 	kg     KVGetter
 	bg     BackendGetter
+	defrag Defrager
 	a      Alarmer
 	lt     LeaderTransferrer
 	hdr    header
@@ -81,7 +86,7 @@ type maintenanceServer struct {
 }
 
 func NewMaintenanceServer(s *etcdserver.EtcdServer, healthNotifier notifier) pb.MaintenanceServer {
-	srv := &maintenanceServer{lg: s.Cfg.Logger, rg: s, hasher: s.KV().HashStorage(), kg: s, bg: s, a: s, lt: s, hdr: newHeader(s), cs: s, d: s, healthNotifier: healthNotifier}
+	srv := &maintenanceServer{lg: s.Cfg.Logger, rg: s, hasher: s.KV().HashStorage(), kg: s, bg: s, defrag: s, a: s, lt: s, hdr: newHeader(s), cs: s, d: s, healthNotifier: healthNotifier}
 	if srv.lg == nil {
 		srv.lg = zap.NewNop()
 	}
@@ -92,7 +97,7 @@ func (ms *maintenanceServer) Defragment(ctx context.Context, sr *pb.DefragmentRe
 	ms.lg.Info("starting defragment")
 	ms.healthNotifier.defragStarted()
 	defer ms.healthNotifier.defragFinished()
-	err := ms.bg.Backend().Defrag()
+	err := ms.defrag.Defragment()
 	if err != nil {
 		ms.lg.Warn("failed to defragment", zap.Error(err))
 		return nil, err
@@ -275,6 +280,22 @@ func (ams *authMaintenanceServer) isAuthenticated(ctx context.Context) error {
 	return ams.ag.AuthStore().IsAdminPermitted(authInfo)
 }
 
+func (ams *authMaintenanceServer) requireAuthInfo(ctx context.Context) error {
+	if !ams.ag.AuthStore().IsAuthEnabled() {
+		return nil
+	}
+
+	authInfo, err := ams.ag.AuthInfoFromCtx(ctx)
+	if err != nil {
+		return err
+	}
+
+	if authInfo == nil {
+		return auth.ErrUserEmpty
+	}
+	return nil
+}
+
 func (ams *authMaintenanceServer) Defragment(ctx context.Context, sr *pb.DefragmentRequest) (*pb.DefragmentResponse, error) {
 	if err := ams.isAuthenticated(ctx); err != nil {
 		return nil, err
@@ -306,14 +327,37 @@ func (ams *authMaintenanceServer) HashKV(ctx context.Context, r *pb.HashKVReques
 	return ams.maintenanceServer.HashKV(ctx, r)
 }
 
+func (ams *authMaintenanceServer) Alarm(ctx context.Context, ar *pb.AlarmRequest) (*pb.AlarmResponse, error) {
+	switch ar.GetAction() {
+	case pb.AlarmRequest_GET:
+		if err := ams.requireAuthInfo(ctx); err != nil {
+			return nil, togRPCError(err)
+		}
+	default:
+		if err := ams.isAuthenticated(ctx); err != nil {
+			return nil, togRPCError(err)
+		}
+	}
+	return ams.maintenanceServer.Alarm(ctx, ar)
+}
+
 func (ams *authMaintenanceServer) Status(ctx context.Context, ar *pb.StatusRequest) (*pb.StatusResponse, error) {
+	if err := ams.requireAuthInfo(ctx); err != nil {
+		return nil, togRPCError(err)
+	}
 	return ams.maintenanceServer.Status(ctx, ar)
 }
 
 func (ams *authMaintenanceServer) MoveLeader(ctx context.Context, tr *pb.MoveLeaderRequest) (*pb.MoveLeaderResponse, error) {
+	if err := ams.isAuthenticated(ctx); err != nil {
+		return nil, togRPCError(err)
+	}
 	return ams.maintenanceServer.MoveLeader(ctx, tr)
 }
 
 func (ams *authMaintenanceServer) Downgrade(ctx context.Context, r *pb.DowngradeRequest) (*pb.DowngradeResponse, error) {
+	if err := ams.isAuthenticated(ctx); err != nil {
+		return nil, togRPCError(err)
+	}
 	return ams.maintenanceServer.Downgrade(ctx, r)
 }

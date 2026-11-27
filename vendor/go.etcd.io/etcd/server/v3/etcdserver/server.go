@@ -114,7 +114,7 @@ var (
 	monitorVersionInterval = rafthttp.ConnWriteTimeout - time.Second
 
 	recommendedMaxRequestBytesString = humanize.Bytes(uint64(recommendedMaxRequestBytes))
-	storeMemberAttributeRegexp       = regexp.MustCompile(path.Join(membership.StoreMembersPrefix, "[[:xdigit:]]{1,16}", "attributes"))
+	StoreMemberAttributeRegexp       = regexp.MustCompile(path.Join(membership.StoreMembersPrefix, "[[:xdigit:]]{1,16}", "attributes"))
 )
 
 func init() {
@@ -537,7 +537,7 @@ func NewServer(cfg config.ServerConfig) (srv *EtcdServer, err error) {
 		if !cfg.ForceNewCluster {
 			id, cl, n, s, w = restartNode(cfg, snapshot)
 		} else {
-			id, cl, n, s, w = restartAsStandaloneNode(cfg, snapshot)
+			id, cl, n, s, w = restartAsStandaloneNode(cfg, snapshot, ci)
 		}
 
 		cl.SetStore(st)
@@ -725,6 +725,10 @@ func assertNoV2StoreContent(lg *zap.Logger, st v2store.Store, deprecationStage c
 		return err
 	}
 	if metaOnly {
+		return nil
+	}
+	if deprecationStage == config.V2_DEPR_1_WRITE_ONLY_SKIP_CHECK {
+		lg.Warn("WARNING: --v2-deprecation=write-only-skip-check is enabled; v2 content detected, but validation check is being bypassed")
 		return nil
 	}
 	if deprecationStage.IsAtLeast(config.V2_DEPR_1_WRITE_ONLY) {
@@ -1334,10 +1338,37 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 	// wait for raftNode to persist snapshot onto the disk
 	<-apply.notifyc
 
+	bemuUnlocked := false
+	s.bemu.Lock()
+	defer func() {
+		if !bemuUnlocked {
+			s.bemu.Unlock()
+		}
+	}()
+
 	// gofail: var applyBeforeOpenSnapshot struct{}
 	newbe, err := openSnapshotBackend(s.Cfg, s.snapshotter, apply.snapshot, s.beHooks)
 	if err != nil {
 		lg.Panic("failed to open snapshot backend", zap.Error(err))
+	}
+	lg.Info("applySnapshot: opened snapshot backend")
+	// gofail: var applyAfterOpenSnapshot struct{}
+
+	lg.Info("restoring v2 store")
+	if err := s.v2store.Recovery(apply.snapshot.Data); err != nil {
+		lg.Panic("failed to restore v2 store", zap.Error(err))
+	}
+
+	if err := assertNoV2StoreContent(lg, s.v2store, s.Cfg.V2Deprecation); err != nil {
+		lg.Panic("illegal v2store content", zap.Error(err))
+	}
+
+	lg.Info("restored v2 store")
+
+	lg.Info("checking and cleaning up zombie members during snapshot restore")
+	membership.CleanupZombieMembersIfNeeded(lg, newbe, s.v2store)
+	if err = membership.SyncLearnerPromotionIfNeeded(lg, newbe, s.v2store); err != nil {
+		lg.Error("Failed to sync learner promotion for v3store", zap.Error(err))
 	}
 
 	// We need to set the backend to consistIndex before recovering the lessor,
@@ -1366,11 +1397,14 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 	newbe.SetTxPostLockInsideApplyHook(s.getTxPostLockInsideApplyHook())
 	lg.Info("restored mvcc store", zap.Uint64("consistent-index", s.consistIndex.ConsistentIndex()))
 
+	oldbe := s.be
+	s.be = newbe
+	s.bemu.Unlock()
+	bemuUnlocked = true
+
 	// Closing old backend might block until all the txns
 	// on the backend are finished.
 	// We do not want to wait on closing the old backend.
-	s.bemu.Lock()
-	oldbe := s.be
 	go func() {
 		lg.Info("closing old backend file")
 		defer func() {
@@ -1380,9 +1414,6 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 			lg.Panic("failed to close old backend", zap.Error(err))
 		}
 	}()
-
-	s.be = newbe
-	s.bemu.Unlock()
 
 	lg.Info("restoring alarm store")
 
@@ -1399,17 +1430,6 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 
 		lg.Info("restored auth store")
 	}
-
-	lg.Info("restoring v2 store")
-	if err := s.v2store.Recovery(apply.snapshot.Data); err != nil {
-		lg.Panic("failed to restore v2 store", zap.Error(err))
-	}
-
-	if err := assertNoV2StoreContent(lg, s.v2store, s.Cfg.V2Deprecation); err != nil {
-		lg.Panic("illegal v2store content", zap.Error(err))
-	}
-
-	lg.Info("restored v2 store")
 
 	s.cluster.SetBackend(newbe)
 
@@ -1689,9 +1709,10 @@ func (s *EtcdServer) mayAddMember(memb membership.Member) error {
 		return ErrNotEnoughStartedMembers
 	}
 
-	if !isConnectedFullySince(s.r.transport, time.Now().Add(-HealthInterval), s.ID(), s.cluster.VotingMembers()) {
+	// Treat the new member as unavailable when checking quorum safety.
+	if !isConnectedToQuorumAfterAddingNewMemberSince(s.r.transport, time.Now().Add(-HealthInterval), s.ID(), s.cluster.VotingMembers()) {
 		lg.Warn(
-			"rejecting member add request; local member has not been connected to all peers, reconfigure breaks active quorum",
+			"rejecting member add request; local member has not been connected to majority peers, reconfigure breaks active quorum",
 			zap.String("local-member-id", s.ID().String()),
 			zap.String("requested-member-add", fmt.Sprintf("%+v", memb)),
 			zap.Error(ErrUnhealthy),
@@ -1922,6 +1943,19 @@ func (s *EtcdServer) UpdateMember(ctx context.Context, memb membership.Member) (
 		Context: b,
 	}
 	return s.configure(ctx, cc)
+}
+
+func (s *EtcdServer) MemberList(ctx context.Context, r *pb.MemberListRequest) ([]*membership.Member, error) {
+	if r.Linearizable {
+		if err := s.LinearizableReadNotify(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := s.requireAuthInfo(ctx); err != nil {
+		return nil, err
+	}
+	return s.cluster.Members(), nil
 }
 
 func (s *EtcdServer) setCommittedIndex(v uint64) {
@@ -2252,6 +2286,12 @@ func (s *EtcdServer) apply(
 			s.setAppliedIndex(e.Index)
 			s.setTerm(e.Term)
 			shouldStop = shouldStop || removedSelf
+
+			if shouldApplyV3 {
+				s.lg.Info("checking and cleaning up zombie members if needed after confState changed")
+				s.cluster.CleanupZombieMembersIfNeeded(shouldApplyV3)
+			}
+
 			s.w.Trigger(cc.ID, &confChangeResponse{s.cluster.Members(), err})
 
 		default:
@@ -2930,4 +2970,10 @@ func maybeDefragBackend(cfg config.ServerConfig, be backend.Backend) error {
 
 func (s *EtcdServer) CorruptionChecker() CorruptionChecker {
 	return s.corruptionChecker
+}
+
+func (s *EtcdServer) Defragment() error {
+	s.bemu.Lock()
+	defer s.bemu.Unlock()
+	return s.be.Defrag()
 }

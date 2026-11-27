@@ -608,6 +608,17 @@ func RunOptionalTestProgressNotify(ctx context.Context, t *testing.T, store stor
 	if err != nil {
 		t.Fatalf("Watch failed: %v", err)
 	}
+	defer w.Stop()
+
+	// etcd only reports progress once the store reaches the watch's starting
+	// revision. Advance it with an unrelated pod so this watch receives no data
+	// events before the expected bookmark.
+	progressInput := input.DeepCopy()
+	progressInput.Name += "-progress"
+	t.Logf("Advancing storage beyond resource version %s with pod %s", out.ResourceVersion, progressInput.Name)
+	if err := store.Create(ctx, computePodKey(progressInput), progressInput, &example.Pod{}, 0); err != nil {
+		t.Fatalf("Create progress pod failed: %v", err)
+	}
 
 	// when we send a bookmark event, the client expects the event to contain an
 	// object of the correct type, but with no fields set other than the resourceVersion
